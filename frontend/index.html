@@ -1,0 +1,199 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Monaco Editor with Activity Bar and Sidebar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="container">
+    <!-- Activity Bar -->
+    <div id="activity-bar">
+      <button class="activity-btn" data-view="chat-view" title="Chatbot">
+        <i class="fas fa-robot"></i>
+      </button>
+      <button class="activity-btn" data-view="file-explorer-view" title="File Explorer">
+        <i class="fas fa-folder"></i>
+      </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="hidden">
+      <div id="sidebar-content">
+        <!-- Chatbot View -->
+        <div id="chat-view" class="sidebar-view active">
+          <div id="selected-model-display">Using Model : llama3.2</div>
+          <div id="chat-history-container"></div>
+          <div id="chat-input-container">
+            <select id="model-selector">
+              <option value="llama3.2:latest">llama3.2</option>
+              <option value="deepseek-r1:1.5b">deepseek-r1</option>
+            </select>
+            <div id="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Type your message..." />
+              <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Explorer View -->
+        <div id="file-explorer-view" class="sidebar-view">
+          <h2>File Explorer</h2>
+          <div id="file-container">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- Editor -->
+    <div id="editor-container">
+      <div id="editor"></div>
+    </div>
+
+  <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+  <script>
+    require.config({ paths: { vs: 'node_modules/monaco-editor/min/vs' } });
+
+    require(['vs/editor/editor.main'], function() {
+      const editor = monaco.editor.create(document.getElementById('editor'), {
+        value: '// Welcome to Monaco Editor\n',
+        language: 'python',
+        theme: 'vs-dark'
+      });
+
+      window.addEventListener('resize', () => {
+        editor.layout();
+      });
+
+      const sidebar = document.getElementById('sidebar');
+      const activityButtons = document.querySelectorAll(".activity-btn");
+
+            // Sidebar View Toggle
+            activityButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+          const view = this.getAttribute("data-view");
+
+          // If the sidebar is hidden, show it
+          if (sidebar.classList.contains("hidden")) {
+            sidebar.classList.remove("hidden");
+          } 
+          // If the same button is clicked again, hide the sidebar
+          else if (document.getElementById(view).classList.contains("active")) {
+            sidebar.classList.add("hidden");
+            return;
+          }
+
+          // Hide all views
+          document.querySelectorAll(".sidebar-view").forEach((viewEl) => {
+            viewEl.classList.remove("active");
+          });
+
+          // Show selected view
+          document.getElementById(view).classList.add("active");
+
+          // Adjust editor layout
+          setTimeout(() => editor.layout(), 300);
+        });
+      });
+    });
+
+    // Get the model selector and display elements
+    const modelSelector = document.getElementById('model-selector');
+    const modelDisplay = document.getElementById('selected-model-display');
+    const chatHistoryContainer = document.getElementById('chat-history-container');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    // Update the displayed model name dynamically
+    modelSelector.addEventListener('change', () => {
+      const selectedModel = modelSelector.value;
+      modelDisplay.textContent = `Using model: ${selectedModel}`;
+    });
+
+    // Add message to chat history as a bubble
+    const addMessageToHistory = (sender, message) => {
+      const messageElement = document.createElement('div');
+      messageElement.classList.add('chat-message', sender); // 'user' or 'ai'
+      messageElement.textContent = message;
+      chatHistoryContainer.appendChild(messageElement);
+
+      // Scroll to the bottom of the chat history
+      chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+    };
+
+    // Replace the send button handler with this
+    sendBtn.addEventListener('click', async () => {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        addMessageToHistory('user', message);
+        chatInput.value = '';
+        
+        try {
+            const response = await fetch('http://127.0.0.1:5000/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    message: message,
+                    model: modelSelector.value
+                })
+            });
+
+            const data = await response.json();
+            
+            if (!response.ok) {
+                let errorMessage = data.error || 'Unknown error occurred';
+                if (data.solution) {
+                    errorMessage += '\nPossible solutions:\n' + data.solution.join('\n');
+                }
+                throw new Error(errorMessage);
+            }
+            
+            addMessageToHistory('ai', data.response);
+        } catch (error) {
+            const errorElement = document.createElement('div');
+            errorElement.classList.add('chat-message', 'error');
+            errorElement.innerHTML = `
+                <strong>Error:</strong> ${error.message}
+                ${data.details ? `<div class="error-details">${data.details}</div>` : ''}
+            `;
+            chatHistoryContainer.appendChild(errorElement);
+            chatHistoryContainer.scrollTop = chatHistoryContainer.scrollHeight;
+        }
+    });
+
+
+  // Handle Enter key press
+  chatInput.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      sendBtn.click();
+    }
+  });
+
+    // model selector in inputbox
+    document.getElementById('model-selector').addEventListener('change', (event) => {
+      const selectedModel = event.target.value;
+      console.log('Selected AI Model:', selectedModel);
+    });
+
+    document.getElementById('send-btn').addEventListener('click', () => {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+
+        if (message) {
+        console.log('Message sent:', message); // Replace with actual functionality
+        input.value = ''; // Clear the input
+        }
+    });
+
+    document.getElementById('chat-input').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter') {
+        event.preventDefault();
+        document.getElementById('send-btn').click();
+        }
+    });
+  </script>
+</body>
+</html>
