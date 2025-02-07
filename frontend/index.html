@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI-Supported IDE</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Add FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
   <div id="container">
@@ -12,9 +14,9 @@
     <div id="activity-bar">
       <button id="chatbot-btn" class="activity-btn" title="Chatbot">🤖</button>
       <button id="file-explorer-btn" class="activity-btn" title="File Explorer">📁</button>
-      <!-- New Sidebar (Right Side) -->
-      <button id="toggle-right-sidebar" class="activity-btn" title="New Sidebar">
-          <i class="fas fa-cogs"></i> <!-- Customize the icon -->
+      <!-- Button to toggle the right sidebar -->
+      <button id="toggle-right-sidebar-btn" class="activity-btn" title="New Sidebar">
+        <i class="fas fa-comments"></i> <!-- Icon for the button -->
       </button>
     </div>
 
@@ -25,9 +27,33 @@
 
     <!-- Right Sidebar (New Feature) -->
     <div id="right-sidebar" class="sidebar hidden">
-      <h3>New Sidebar</h3>
-      <p>Additional functionality can be added here.</p>
+      <div id="right-sidebar-content">
+        <!-- Chatbot-like content -->
+        <div id="right-selected-model-display">Using Model: DeepSeek R1</div>
+        <div id="right-chat-history-container"></div>
+        <div id="right-chat-input-container">
+          <div id="right-model-file-container">
+            <!-- Model Dropdown -->
+            <select id="right-model-selector">
+              <option value="mistral-7b">Mistral 7B</option>
+              <option value="deepseek">DeepSeek R1 Local</option>
+              <option value="deepseek-r1:1.5b">DeepSeek R1</option>
+              <option value="llama3.2">Llama 3.2</option>
+            </select>
+            <!-- File Upload Button -->
+            <input type="file" id="right-file-input" style="display: none" />
+            <button id="right-upload-btn" class="icon-button">📎</button>
+          </div>
+          <div id="right-chat-input-row">
+            <input type="text" id="right-chat-input" placeholder="Type your message..." />
+            <button id="right-send-btn">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+    
 
     <!-- Code Editor -->
     <div id="editor-container">
@@ -50,12 +76,21 @@
 
       const sidebar = document.getElementById('sidebar');
       const sidebarContent = document.getElementById('sidebar-content');
+
+      const rightSidebar = document.getElementById('right-sidebar');
+      const RightSidebarContent = document.getElementById('right-sidebar-content');
+
       const chatbotBtn = document.getElementById('chatbot-btn');
       const fileExplorerBtn = document.getElementById('file-explorer-btn');
+      const toggleRightSidebarBtn = document.getElementById('toggle-right-sidebar-btn');
 
       let activeView = null;
       let chatHistory = [];  // Store chat messages persistently
 
+      let rightActiveView = null;
+      let rightChatHistory = [];  // Store chat messages persistently
+
+      // main sidebar
       function toggleSidebar(view) {
         if (activeView === view && !sidebar.classList.contains('hidden')) {
           sidebar.classList.add('hidden');
@@ -67,6 +102,103 @@
         activeView = view;
         updateSidebarContent(view);
         editor.layout();
+      }
+
+      // right sidebar
+      function rightToggleSidebar(view) {
+        if (rightActiveView === view && !rightSidebar.classList.contains('hidden')) {
+          rightSidebar.classList.add('hidden');
+          editor.layout();
+          return;
+        }
+
+        rightSidebar.classList.remove('hidden');
+        rightActiveView = view;
+        updateSidebarContent(view);
+        editor.layout();
+      }
+
+      function updateRightSidebarContent(view) {
+        RightSidebarContent.innerHTML = '';
+
+        if (view === 'right-chatbot') {
+          sidebarContent.innerHTML = `
+            <div id="right-selected-model-display">Current Selected Model: DeepSeek R1</div>
+
+            <div id="right-chat-history-container"></div>
+            
+            <div id="right-chat-input-container">
+              <!-- Model Selector & File Upload Button in a single row -->
+              <div id="right-model-file-container">
+                <!-- Model Dropdown -->
+                <select id="right-model-selector">
+                  <option value="deepseek">DeepSeek R1 Loacal</option>
+                  <option value="deepseek-r1:1.5b">DeepSeek R1</option>
+                  <option value="llama3.2">Llama 3.2</option>
+                </select>
+
+                <!-- File Upload Button -->
+                <input type="file" id="right-file-input" style="display: none" />
+                <button id="right-upload-btn" class="icon-button">📎</button>
+              </div>
+              
+              <div id="right-chat-input-row">
+                <input type="text" id="right-chat-input" placeholder="Type your message..." />
+                <button id="right-send-btn">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+
+            </div>
+          `;
+
+          const rightChatHistoryContainer = document.getElementById('right-chat-history-container');
+
+          // Restore previous chat history
+          rightChatHistory.forEach(({ sender, text }) => {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('chat-message', sender);
+            msgDiv.textContent = text;
+            rightChatHistoryContainer.appendChild(msgDiv);
+          });
+
+          document.getElementById('right-send-btn').addEventListener('click', sendMessage);
+          document.getElementById('right-chat-input').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              sendMessage();
+            }
+          });
+        }
+      }
+
+      function rightSendMessage() {
+        const rightChatInput = document.getElementById('right-chat-input');
+        const message = rightChatInput.value.trim();
+        if (!message) return;
+
+        const rightChatHistoryContainer = document.getElementById('right-chat-history-container');
+
+        const addMessage = (sender, text) => {
+          const msgDiv = document.createElement('div');
+          msgDiv.classList.add('chat-message', sender);
+          msgDiv.textContent = text;
+          rightChatHistoryContainer.appendChild(msgDiv);
+          rightChatHistoryContainer.scrollTop = rightChatHistoryContainer.scrollHeight;
+          rightChatHistory.push({ sender, text }); // Save to history
+        };
+
+        addMessage('user', message);
+        rightChatInput.value = '';
+
+        fetch('http://127.0.0.1:5000/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message, model: document.getElementById('right-model-selector').value })
+        })
+        .then(response => response.json())
+        .then(data => addMessage('ai', data.response))
+        .catch(error => console.error('Error sending message:', error));
       }
 
       function updateSidebarContent(view) {
@@ -174,6 +306,7 @@
 
       chatbotBtn.addEventListener('click', () => toggleSidebar('chatbot'));
       fileExplorerBtn.addEventListener('click', () => toggleSidebar('file-explorer'));
+      toggleRightSidebarBtn.addEventListener('click', () => rightToggleSidebar('right-chatbot'));
     });
   </script>
 </body>

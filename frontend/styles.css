@@ -432,3 +432,199 @@ body {
 .folder.open > .folder-label::before {
   transform: rotate(90deg);
 }
+
+body {
+    background-color: #121212; /* Dark background for contrast */
+    color: white; /* Text color */
+    font-family: Arial, sans-serif; /* Font style */
+}
+
+.chat-input-container {
+    display: flex; /* Align items in a row */
+    align-items: center; /* Center items vertically */
+    background-color: #1e1e1e; /* Dark background for the input */
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Padding inside the container */
+    max-width: 600px; /* Maximum width */
+    margin: 20px auto; /* Center the container */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow effect */
+}
+
+.chat-input {
+    flex: 1; /* Grow to fill available space */
+    background-color: transparent; /* Transparent background */
+    border: none; /* No border */
+    outline: none; /* No outline on focus */
+    color: white; /* Text color */
+    padding: 8px; /* Padding inside the input */
+    font-size: 16px; /* Font size */
+}
+
+.chat-icons {
+    display: flex; /* Align icons in a row */
+    gap: 10px; /* Space between icons */
+}
+
+.icon {
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 20px; /* Icon size */
+    transition: color 0.3s; /* Smooth transition for hover effect */
+}
+
+.icon:hover {
+    color: #6200ea; /* Change color on hover */
+}
+
+
+/* Right Sidebar Styles */
+#right-sidebar {
+  right: 0;
+  width: 350px;
+  background: #474747;
+  color: white;
+  transition: all 0.2s ease;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}
+
+#right-sidebar.hidden {
+  width: 0;
+  padding: 0;
+  opacity: 0;
+}
+
+#right-sidebar-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+#right-selected-model-display {
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: bold;
+  background: #1e1e1e;
+  color: white;
+}
+
+#right-chat-history-container {
+  flex-grow: 1;
+  max-height: calc(100% - 120px);
+  overflow-y: auto;
+  padding: 10px;
+  background: #2a2a2a;
+  box-sizing: border-box;
+}
+
+#right-chat-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 10px;
+  border-top: 1px solid #333;
+  background: #2d2d2d;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#right-model-file-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px;
+  gap: 8px;
+}
+
+#right-model-selector {
+  background: #1e1e1e;
+  border: none;
+  color: white;
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  outline: none;
+  cursor: pointer;
+  flex-grow: 1;
+}
+
+#right-model-selector option {
+  background: #2d2d2d;
+  color: white;
+}
+
+#right-upload-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  color: white;
+}
+
+#right-upload-btn:hover {
+  color: #4caf50;
+}
+
+#right-chat-input-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+#right-chat-input {
+  flex-grow: 1;
+  background: #1e1e1e;
+  border: none;
+  border-radius: 20px;
+  padding: 10px 15px;
+  color: white;
+  outline: none;
+  font-size: 14px;
+  width: 100%;
+}
+
+#right-chat-input::placeholder {
+  color: #858585;
+}
+
+#right-send-btn {
+  background: #4caf50;
+  border: none;
+  border-radius: 60%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s;
+  margin-left: 10px;
+}
+
+#right-send-btn:hover {
+  background: #45a049;
+}
+
+#right-send-btn i {
+  margin: 0;
+  font-size: 18px;
+  color: white;
+}
+
+#right-chat-history-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+#right-chat-history-container::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+#right-chat-history-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
