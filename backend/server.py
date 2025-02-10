@@ -172,8 +172,8 @@ def retrieve_code_snippets(query):
 # Store chat history
 
 chat_history = []
-TOGETHER_API_KEY = "52e105a76143d46030c93f0291c1f30dec8a337d26ffdad5250381ce8f43510e"
-DEEPSEEK_API_KEY = "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"  # 🔹 Replace with your actual DeepSeek API key
+TOGETHER_API_KEY = ""
+DEEPSEEK_API_KEY = ""  # 🔹 Replace with your actual DeepSeek API key
 DEEPSEEK_API_URL = "https://openrouter.ai/api/v1"
 TOGETHER_URL = "https://api.together.xyz/v1/completions"
 
@@ -307,7 +307,7 @@ def chat():
 # Upload Code Snippet Endpoint
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print(f'/upload called')
+    print(f'/upload endpoint called')
 
     if 'file' not in request.files:
         print(f'No file uploaded')
