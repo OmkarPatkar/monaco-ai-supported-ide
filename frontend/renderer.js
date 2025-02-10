@@ -198,11 +198,11 @@
 //   const rightSidebar = document.getElementById("right-sidebar");
 //   rightSidebar.classList.toggle("hidden");
 
-//   // Resize the Monaco editor when the sidebar is toggled
-//   const editors = monaco.editor.getEditors();
-//   if (editors.length > 0) {
-//     editors[0].layout();
-//   }
+  // Resize the Monaco editor when the sidebar is toggled
+  // const editors = monaco.editor.getEditors();
+  // if (editors.length > 0) {
+  //   editors[0].layout();
+  // }
 // });
 
 // // Right Sidebar Chat Functionality
@@ -277,3 +277,38 @@
 //       .catch((error) => console.error("❌ Error sending file:", error));
 //   }
 // });
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ Renderer.js Loaded and DOM Ready!");
+
+  // const fileInput = document.getElementById("right-file-input");
+  // const uploadBtn = document.getElementById("right-upload-btn");
+
+  // if (!fileInput || !uploadBtn) {
+  //   console.error("File input or upload button not found in DOM!");
+  //   return;
+  // }
+
+  // uploadBtn.addEventListener("click", () => fileInput.click());
+
+  // fileInput.addEventListener("change", function () {
+  //   if (fileInput.files.length > 0) {
+  //     const file = fileInput.files[0];
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+
+  //     fetch("http://127.0.0.1:5000/upload", {
+  //       method: "POST",
+  //       body: formData,
+  //     })
+  //       .then((response) => response.json())
+  //       .then((data) => {
+  //         console.log("File uploaded:", data);
+  //         alert(`✅ ${data.message}`);
+  //       })
+  //       .catch((error) => console.error("Error uploading file:", error));
+  //   }
+  // });  
+  // console.log("✅ Event Listeners Attached!");
+});
