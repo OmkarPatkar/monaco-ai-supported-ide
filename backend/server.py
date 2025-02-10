@@ -198,10 +198,10 @@ def chat():
         # print(f"👤 User: {user_message}")
         print(f"🤖 Model: {model_name}")
 
-        # Retrieve relevant code snippets
-        retrieved_code = retrieve_code_snippets(user_message)
-        if retrieved_code:
-            user_message = f"Context:\n{retrieved_code}\n\nUser Query:\n{user_message}"
+        # # Retrieve relevant code snippets
+        # retrieved_code = retrieve_code_snippets(user_message)
+        # if retrieved_code:
+        #     user_message = f"Context:\n{retrieved_code}\n\nUser Query:\n{user_message}"
 
 
         # Append user message to history
