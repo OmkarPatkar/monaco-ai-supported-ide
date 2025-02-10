@@ -143,10 +143,14 @@ app.whenReady().then(() => {
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,  // Required for IPC communication
+            enableRemoteModule: true, // Needed for some Electron APIs
+            devTools: true  // Ensures DevTools is enabled
         },
     });
 
     mainWindow.loadFile("index.html");
+    mainWindow.webContents.openDevTools();
+
 
     // Listen for file dialog request from renderer
     ipcMain.on("open-file-dialog", async (event) => {

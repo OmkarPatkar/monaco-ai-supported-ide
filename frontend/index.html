@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI-Supported IDE</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="renderer.js"></script>
   <!-- Add FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -15,8 +16,8 @@
       <button id="chatbot-btn" class="activity-btn" title="Chatbot">🤖</button>
       <button id="file-explorer-btn" class="activity-btn" title="File Explorer">📁</button>
       <!-- Button to toggle the right sidebar -->
-      <button id="toggle-right-sidebar-btn" class="activity-btn" title="New Sidebar">
-        <i class="fas fa-comments"></i> <!-- Icon for the button -->
+      <button id="toggle-right-sidebar-btn" class="activity-btn" title="AI Chat">
+        <i class="fas fa-message"></i> <!-- Icon for the button -->
       </button>
     </div>
 
@@ -28,29 +29,23 @@
     <!-- Right Sidebar (New Feature) -->
     <div id="right-sidebar" class="sidebar hidden">
       <div id="right-sidebar-content">
-        <!-- Chatbot-like content -->
-        <div id="right-selected-model-display">Using Model: DeepSeek R1</div>
+        <!-- <div id="right-selected-model-display">Current Model: DeepSeek R1</div>
         <div id="right-chat-history-container"></div>
         <div id="right-chat-input-container">
           <div id="right-model-file-container">
-            <!-- Model Dropdown -->
             <select id="right-model-selector">
-              <option value="mistral-7b">Mistral 7B</option>
               <option value="deepseek">DeepSeek R1 Local</option>
               <option value="deepseek-r1:1.5b">DeepSeek R1</option>
               <option value="llama3.2">Llama 3.2</option>
             </select>
-            <!-- File Upload Button -->
             <input type="file" id="right-file-input" style="display: none" />
             <button id="right-upload-btn" class="icon-button">📎</button>
           </div>
           <div id="right-chat-input-row">
             <input type="text" id="right-chat-input" placeholder="Type your message..." />
-            <button id="right-send-btn">
-              <i class="fas fa-paper-plane"></i>
-            </button>
+            <button id="right-send-btn"><i class="fas fa-paper-plane"></i></button>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
     
@@ -114,7 +109,7 @@
 
         rightSidebar.classList.remove('hidden');
         rightActiveView = view;
-        updateSidebarContent(view);
+        updateRightSidebarContent(view);
         editor.layout();
       }
 
@@ -122,8 +117,8 @@
         RightSidebarContent.innerHTML = '';
 
         if (view === 'right-chatbot') {
-          sidebarContent.innerHTML = `
-            <div id="right-selected-model-display">Current Selected Model: DeepSeek R1</div>
+          RightSidebarContent.innerHTML = `
+            <div id="right-selected-model-display">Selected Model: DeepSeek R1</div>
 
             <div id="right-chat-history-container"></div>
             
@@ -157,16 +152,16 @@
           // Restore previous chat history
           rightChatHistory.forEach(({ sender, text }) => {
             const msgDiv = document.createElement('div');
-            msgDiv.classList.add('chat-message', sender);
+            msgDiv.classList.add('right-chat-message', sender);
             msgDiv.textContent = text;
             rightChatHistoryContainer.appendChild(msgDiv);
           });
 
-          document.getElementById('right-send-btn').addEventListener('click', sendMessage);
+          document.getElementById('right-send-btn').addEventListener('click', rightSendMessage);
           document.getElementById('right-chat-input').addEventListener('keypress', (event) => {
             if (event.key === 'Enter') {
               event.preventDefault();
-              sendMessage();
+              rightSendMessage();
             }
           });
         }
@@ -181,7 +176,7 @@
 
         const addMessage = (sender, text) => {
           const msgDiv = document.createElement('div');
-          msgDiv.classList.add('chat-message', sender);
+          msgDiv.classList.add('right-chat-message', sender);
           msgDiv.textContent = text;
           rightChatHistoryContainer.appendChild(msgDiv);
           rightChatHistoryContainer.scrollTop = rightChatHistoryContainer.scrollHeight;
@@ -215,7 +210,6 @@
               <div id="model-file-container">
                 <!-- Model Dropdown -->
                 <select id="model-selector">
-                  <option value="mistral-7b">Mistral 7B</option>
                   <option value="deepseek">DeepSeek R1 Loacal</option>
                   <option value="deepseek-r1:1.5b">DeepSeek R1</option>
                   <option value="llama3.2">Llama 3.2</option>

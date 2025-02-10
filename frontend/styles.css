@@ -92,12 +92,12 @@ body {
   display: none;
   height: 100%;
 }
-
+/* 
 #chatbot-view {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
+} */
 
 /* Sidebar Content */
 #sidebar-content {
@@ -107,18 +107,16 @@ body {
 }
 
 /* Sidebar Views */
-.sidebar-view {
+/* .sidebar-view {
   display: none;
-  /* Hide all views by default */
   height: 100%;
   flex-direction: column;
-}
+} */
 
 /* Active View */
-.sidebar-view.active {
+/* .sidebar-view.active {
   display: flex;
-  /* Show active view */
-}
+} */
 
 /* File Explorer Styling */
 #file-container {
@@ -214,11 +212,10 @@ body {
   border-bottom-left-radius: 0;
 }
 
-#chat-input-container {
+/* #chat-input-container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  /* Aligns items to the left */
   padding: 10px;
   border-top: 1px solid #333;
   background: #2d2d2d;
@@ -226,7 +223,7 @@ body {
   bottom: 0;
   width: 100%;
   box-sizing: border-box;
-}
+} */
 
 #model-selector {
   background: #1e1e1e;
@@ -351,6 +348,16 @@ body {
   margin: 8px 0;
 }
 
+/* Add to styles.css */
+.right-chat-message.error {
+  background: #ffebee;
+  border: 1px solid #ffcdd2;
+  color: #b71c1c;
+  padding: 12px;
+  border-radius: 8px;
+  margin: 8px 0;
+}
+
 .error-details {
   font-size: 0.9em;
   color: #7f0000;
@@ -433,11 +440,11 @@ body {
   transform: rotate(90deg);
 }
 
-body {
+/* body {
     background-color: #121212; /* Dark background for contrast */
-    color: white; /* Text color */
-    font-family: Arial, sans-serif; /* Font style */
-}
+    /* color: white; Text color */
+    /* font-family: Arial, sans-serif; Font style */
+/* } */ 
 
 .chat-input-container {
     display: flex; /* Align items in a row */
@@ -450,15 +457,15 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Subtle shadow effect */
 }
 
-.chat-input {
+/* .chat-input {
     flex: 1; /* Grow to fill available space */
-    background-color: transparent; /* Transparent background */
-    border: none; /* No border */
-    outline: none; /* No outline on focus */
-    color: white; /* Text color */
-    padding: 8px; /* Padding inside the input */
-    font-size: 16px; /* Font size */
-}
+    /* background-color: transparent; Transparent background */
+    /* border: none; No border */
+    /* outline: none; No outline on focus */
+    /* color: white; Text color */
+    /* padding: 8px; Padding inside the input */
+    /* font-size: 16px; Font size */
+/* }  */
 
 .chat-icons {
     display: flex; /* Align icons in a row */
@@ -534,7 +541,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px;
+  /* padding: 10px; */
   gap: 8px;
 }
 
@@ -627,4 +634,31 @@ body {
 
 #right-chat-history-container::-webkit-scrollbar-thumb:hover {
   background: #555;
+}
+
+/* Chat Bubble Styles */
+.right-chat-message {
+  display: flex;
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  border-radius: 15px;
+  word-wrap: break-word;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* User message styles */
+.right-chat-message.user {
+  align-self: flex-end;
+  background: #474747;
+  color: white;
+  border-bottom-right-radius: 0;
+}
+
+/* AI message styles */
+.right-chat-message.ai {
+  align-self: flex-start;
+  background: #333;
+  color: white;
+  border-bottom-left-radius: 0;
 }

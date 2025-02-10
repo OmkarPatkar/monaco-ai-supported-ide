@@ -166,102 +166,114 @@
 
 // 2
 
-const { ipcRenderer } = require("electron");
+// const { ipcRenderer } = require("electron");
 
-// Handle file upload button click
-document.getElementById("upload-btn").addEventListener("click", () => {
-    ipcRenderer.send("open-file-dialog");
-});
+// // Handle file upload button click
+// document.getElementById("upload-btn").addEventListener("click", () => {
+//     ipcRenderer.send("open-file-dialog");
+// });
 
-// Receive selected file path from main process
-ipcRenderer.on("selected-file", (event, filePath) => {
-    if (filePath) {
-        console.log("📂 File selected:", filePath);
+// // Receive selected file path from main process
+// ipcRenderer.on("selected-file", (event, filePath) => {
+//     if (filePath) {
+//         console.log("📂 File selected:", filePath);
 
-        // Send file path to backend for processing with ChromaDB
-        fetch("http://127.0.0.1:5000/upload", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ file_path: filePath }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            console.log("✅ Server response:", data);
-        })
-        .catch(error => {
-            console.error("❌ Error sending file:", error);
-        });
-    }
-});
+//         // Send file path to backend for processing with ChromaDB
+//         fetch("http://127.0.0.1:5000/upload", {
+//             method: "POST",
+//             headers: { "Content-Type": "application/json" },
+//             body: JSON.stringify({ file_path: filePath }),
+//         })
+//         .then(response => response.json())
+//         .then(data => {
+//             console.log("✅ Server response:", data);
+//         })
+//         .catch(error => {
+//             console.error("❌ Error sending file:", error);
+//         });
+//     }
+// });
 
-document.getElementById("toggle-right-sidebar-btn").addEventListener("click", () => {
-  const rightSidebar = document.getElementById("right-sidebar");
-  rightSidebar.classList.toggle("hidden");
+// document.getElementById("toggle-right-sidebar-btn").addEventListener("click", () => {
+//   const rightSidebar = document.getElementById("right-sidebar");
+//   rightSidebar.classList.toggle("hidden");
 
-  // Resize the Monaco editor when the sidebar is toggled
-  const editors = monaco.editor.getEditors();
-  if (editors.length > 0) {
-    editors[0].layout();
-  }
-});
+//   // Resize the Monaco editor when the sidebar is toggled
+//   const editors = monaco.editor.getEditors();
+//   if (editors.length > 0) {
+//     editors[0].layout();
+//   }
+// });
 
-// Right Sidebar Chat Functionality
-const rightChatHistoryContainer = document.getElementById("right-chat-history-container");
-const rightChatInput = document.getElementById("right-chat-input");
-const rightSendBtn = document.getElementById("right-send-btn");
-const rightModelSelector = document.getElementById("right-model-selector");
-const rightUploadBtn = document.getElementById("right-upload-btn");
+// // Right Sidebar Chat Functionality
+// const rightChatHistoryContainer = document.getElementById("right-chat-history-container");
+// const rightChatInput = document.getElementById("right-chat-input");
+// const rightSendBtn = document.getElementById("right-send-btn");
+// const rightModelSelector = document.getElementById("right-model-selector");
+// const rightUploadBtn = document.getElementById("right-upload-btn");
 
-let rightChatHistory = [];
+// let rightChatHistory = [];
 
-function sendRightMessage() {
-  const message = rightChatInput.value.trim();
-  if (!message) return;
+// function sendRightMessage() {
 
-  const addMessage = (sender, text) => {
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("chat-message", sender);
-    msgDiv.textContent = text;
-    rightChatHistoryContainer.appendChild(msgDiv);
-    rightChatHistoryContainer.scrollTop = rightChatHistoryContainer.scrollHeight;
-    rightChatHistory.push({ sender, text });
-  };
+//   if (!rightChatInput || !rightModelSelector) {
+//     console.error("❌ Missing chat input or model selector.");
+//     return;
+//   }
 
-  addMessage("user", message);
-  rightChatInput.value = "";
+//   const message = rightChatInput.value.trim();
+//   if (!message) return;
 
-  fetch("http://127.0.0.1:5000/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: message, model: rightModelSelector.value }),
-  })
-    .then((response) => response.json())
-    .then((data) => addMessage("ai", data.response))
-    .catch((error) => console.error("Error sending message:", error));
-}
+//   const addMessage = (sender, text) => {
+//     const msgDiv = document.createElement("div");
+//     msgDiv.classList.add("chat-message", sender);
+//     msgDiv.textContent = text;
+//     rightChatHistoryContainer.appendChild(msgDiv);
+//     rightChatHistoryContainer.scrollTop = rightChatHistoryContainer.scrollHeight;
+//     rightChatHistory.push({ sender, text });
+//   };
 
-rightSendBtn.addEventListener("click", sendRightMessage);
-rightChatInput.addEventListener("keypress", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    sendRightMessage();
-  }
-});
+//   addMessage("user", message);
+//   rightChatInput.value = "";
 
-// File Upload for Right Sidebar
-rightUploadBtn.addEventListener("click", () => {
-  ipcRenderer.send("open-file-dialog");
-});
+//   fetch("http://127.0.0.1:5000/chat", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ message: message, model: rightModelSelector.value }),
+//   })
+//     .then((response) => response.json())
+//     .then((data) => addMessage("ai", data.response))
+//     .catch((error) => console.error("Error sending message:", error));
+// }
 
-ipcRenderer.on("selected-file", (event, filePath) => {
-  if (filePath) {
-    fetch("http://127.0.0.1:5000/upload", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ file_path: filePath }),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log("✅ Server response:", data))
-      .catch((error) => console.error("❌ Error sending file:", error));
-  }
-});
+// // Attach event listeners
+// if (rightSendBtn) {
+//   rightSendBtn.addEventListener("click", sendRightMessage);
+// }
+
+// if (rightChatInput) {
+//   rightChatInput.addEventListener("keypress", (event) => {
+//   if (event.key === "Enter") {
+//     event.preventDefault();
+//     sendRightMessage();
+//   }
+// });
+// }
+
+// // File Upload for Right Sidebar
+// rightUploadBtn.addEventListener("click", () => {
+//   ipcRenderer.send("open-file-dialog");
+// });
+
+// ipcRenderer.on("selected-file", (event, filePath) => {
+//   if (filePath) {
+//     fetch("http://127.0.0.1:5000/upload", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({ file_path: filePath }),
+//     })
+//       .then((response) => response.json())
+//       .then((data) => console.log("✅ Server response:", data))
+//       .catch((error) => console.error("❌ Error sending file:", error));
+//   }
+// });
