@@ -37,19 +37,21 @@ document.addEventListener("DOMContentLoaded", () => {
     monaco.languages.register({ id: 'markdown' });
     monaco.languages.register({ id: 'plaintext' });
 
+    // Initialize tab manager after Monaco is ready
+    window.tabManager = new TabManager();
+
     // Set editor ready flag
     window.editorReady = true;
     console.log("✅ Monaco Editor Initialized");
   });
 
-  // Initialize chat functionality
+  // Initialize other components
   initializeChatFunctionality();
-  
-  // Initialize resizable sidebar
   initializeResizableSidebar();
-  
-  // Initialize terminal panel
   initializeTerminalPanel();
+  
+  // Initialize file explorer after Monaco and tab manager
+  window.fileExplorer = new FileExplorer();
 
   // const fileInput = document.getElementById("right-file-input");
   // const uploadBtn = document.getElementById("right-upload-btn");
@@ -228,7 +230,7 @@ function initializeChatFunctionality() {
                 },
                 body: JSON.stringify({
                     message: message,
-                    model: 'deepseek-r1:1.5b',  // Always use the local Deepseek model
+                    model: modelSelector.value,  // Use the selected model from dropdown
                     context: editorContent
                 })
             });
@@ -271,9 +273,10 @@ function initializeChatFunctionality() {
             console.error('Error:', error);
             appendMessage('system', `Error: ${error.message}`);
         } finally {
-            // Re-enable input
+            // Re-enable input and restore focus
             chatInput.disabled = false;
             sendButton.disabled = false;
+            chatInput.focus(); // Restore focus to the input
         }
     }
 

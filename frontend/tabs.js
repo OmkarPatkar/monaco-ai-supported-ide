@@ -5,6 +5,21 @@ class TabManager {
         this.tabList = document.querySelector('.tab-list');
         this.initializeCloseAllButton();
         this.models = new Map(); // Store Monaco editor models
+        this.defaultModel = null;
+        this.initializeDefaultModel();
+    }
+
+    initializeDefaultModel() {
+        // Create a default model with welcome message
+        this.defaultModel = monaco.editor.createModel(
+            '// Welcome to AI-Supported IDE\n' +
+            '// Open a file from the explorer or create a new file to get started\n\n' +
+            '// Quick Tips:\n' +
+            '// - Use the file explorer on the left to open files\n' +
+            '// - Use the terminal below for commands\n' +
+            '// - Use the chat panel on the right for AI assistance',
+            'javascript'
+        );
     }
 
     initializeCloseAllButton() {
@@ -52,8 +67,16 @@ class TabManager {
         const model = monaco.editor.createModel(content, language);
         this.models.set(filePath, model);
 
-        // Activate the new tab
+        // Activate the new tab and ensure editor is in editable state
         this.activateTab(filePath);
+        window.editor.updateOptions({
+            readOnly: false,
+            renderLineHighlight: 'all',
+            renderIndentGuides: true,
+            minimap: {
+                enabled: true
+            }
+        });
     }
 
     activateTab(filePath) {
@@ -97,9 +120,17 @@ class TabManager {
             if (remainingTabs.length > 0) {
                 this.activateTab(remainingTabs[remainingTabs.length - 1]);
             } else {
-                // No tabs left, clear editor
+                // No tabs left, show default welcome message
                 if (window.editor) {
-                    window.editor.setModel(null);
+                    window.editor.setModel(this.defaultModel);
+                    window.editor.updateOptions({
+                        readOnly: true,
+                        renderLineHighlight: 'none',
+                        renderIndentGuides: false,
+                        minimap: {
+                            enabled: false
+                        }
+                    });
                 }
             }
         }
