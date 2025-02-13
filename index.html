@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple IDE Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+        }
+
+        .model-response {
+            background-color: #2b3038;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-accept {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-reject {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .btn-update {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .create-file-btn {
+            background-color: #9c27b0;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 4px;
+            color: white;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.success {
+            background-color: #28a745;
+        }
+
+        .notification.error {
+            background-color: #dc3545;
+        }
+
+        .notification.info {
+            background-color: #17a2b8;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <button class="btn create-file-btn">Create New File</button>
+        
+        <div class="message">
+            <p>Here's a sample message</p>
+        </div>
+
+        <div class="message model-response">
+            <p>This is a model response</p>
+            <div class="action-buttons">
+                <button class="btn btn-accept">Accept</button>
+                <button class="btn btn-update">Update</button>
+                <button class="btn btn-reject">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add event listeners for buttons
+        document.querySelector('.create-file-btn').addEventListener('click', () => {
+            // Handle create file action
+            console.log('Create file clicked');
+        });
+
+        document.querySelectorAll('.action-buttons .btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const action = e.target.className.includes('accept') ? 'accept' : 
+                              e.target.className.includes('update') ? 'update' : 'reject';
+                console.log(`${action} clicked`);
+            });
+        });
+    </script>
+</body>
+</html> 
