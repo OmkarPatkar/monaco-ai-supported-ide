@@ -2,278 +2,85 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI-Supported IDE</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
-    <script src="renderer.js"></script> <!-- ✅ Ensure this is loaded AFTER Monaco -->
-
-    <!-- Add FontAwesome -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="node_modules/@xterm/xterm/css/xterm.css" />
   </head>
   <body>
-    <div id="container">
-      <!-- Activity Bar -->
-      <div id="activity-bar">
-        <button
-          id="file-explorer-btn"
-          class="activity-btn"
-          title="File Explorer"
-        >
-          📁
-        </button>
-        <button
-          id="toggle-right-sidebar-btn"
-          class="activity-btn"
-          title="AI Chat"
-        >
-          <i class="fas fa-message"></i>
-          <!-- Icon for the button -->
-        </button>
-      </div>
+    <div class="app-container">
+      <!-- Left sidebar for file tree -->
+      <div id="file-tree-container"></div>
 
-      <!-- Sidebar -->
-      <div id="sidebar" class="hidden">
-        <div id="sidebar-content"></div>
-      </div>
-
-      <!-- Right Sidebar (New Feature) -->
-      <div id="right-sidebar" class="sidebar hidden">
-        <div id="right-sidebar-content"></div>
-      </div>
-
-      <!-- Code Editor -->
+      <!-- Main editor area -->
       <div id="editor-container">
+        <div class="editor-toolbar"></div>
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+          <div class="tab-list"></div>
+          <div class="tab-actions">
+            <button class="tab-action-btn" title="Close All Tabs">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
         <div id="editor"></div>
+        
+        <!-- Terminal Panel -->
+        <div id="terminal-panel">
+            <div class="terminal-panel-header">
+                <div class="terminal-panel-title">TERMINAL</div>
+                <div class="terminal-panel-actions">
+                    <button class="terminal-panel-btn" title="Clear Terminal">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="terminal-panel-btn" title="Toggle Terminal">
+                        <i class="fas fa-chevron-up"></i>
+                    </button>
+                </div>
+            </div>
+            <div id="terminal-container"></div>
+        </div>
+      </div>
+
+      <!-- Right sidebar for chat -->
+      <div id="right-sidebar">
+        <div class="sidebar-header">
+          <select id="model-selector" class="model-select">
+            <option value="deepseek-r1:1.5b">DeepSeek R1 1.5B</option>
+            <option value="deepseek-r1:7b">DeepSeek R1 7B</option>
+          </select>
+        </div>
+        <div id="chat-container">
+          <div id="chat-messages"></div>
+          <div class="chat-input-container">
+            <textarea id="user-input" placeholder="Ask me anything..."></textarea>
+            <button id="send-button">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+        <div id="code-changes-container" class="hidden">
+          <div class="changes-header">
+            <h3>Proposed Changes</h3>
+          </div>
+          <div id="changes-preview"></div>
+        </div>
       </div>
     </div>
 
-    <script>
-      require.config({ paths: { vs: "node_modules/monaco-editor/min/vs" } });
-
-      require(["vs/editor/editor.main"], function () {
-        let editor = monaco.editor.create(document.getElementById("editor"), {
-          value: "// Welcome to AI-Supported IDE\n",
-          language: "javascript",
-          theme: "vs-dark",
-        });
-
-        window.addEventListener("resize", () => {
-          const editors = monaco.editor.getEditors();
-          if (editors.length > 0) {
-            editors[0].layout();
-          }
-        });
-
-        const sidebar = document.getElementById("sidebar");
-        const sidebarContent = document.getElementById("sidebar-content");
-
-        const rightSidebar = document.getElementById("right-sidebar");
-        const RightSidebarContent = document.getElementById(
-          "right-sidebar-content"
-        );
-
-        const fileExplorerBtn = document.getElementById("file-explorer-btn");
-        const toggleRightSidebarBtn = document.getElementById(
-          "toggle-right-sidebar-btn"
-        );
-
-        let activeView = null;
-        
-        let rightActiveView = null;
-        let rightChatHistory = []; // Store chat messages persistently
-
-        // Main Sidebar
-        function toggleSidebar(view) {
-          if (activeView === view && !sidebar.classList.contains("hidden")) {
-            sidebar.classList.add("hidden");
-            editor.layout();
-            return;
-          }
-
-          sidebar.classList.remove("hidden");
-          activeView = view;
-          updateSidebarContent(view);
-          editor.layout();
-        }
-
-        // Right Sidebar
-        function rightToggleSidebar(view) {
-
-          if (
-            rightActiveView === view &&
-            !rightSidebar.classList.contains("hidden")
-          ) {
-            rightSidebar.classList.add("hidden");
-            editor.layout();
-            return;
-          }
-
-          rightSidebar.classList.remove("hidden");
-          rightActiveView = view;
-          updateRightSidebarContent(view);
-          editor.layout();
-        }
-
-        function updateRightSidebarContent(view) {
-          RightSidebarContent.innerHTML = "";
-
-          if (view === "right-chatbot") {
-            RightSidebarContent.innerHTML = `
-            <div id="right-selected-model-display">Selected Model: DeepSeek R1</div>
-
-            <div id="right-chat-history-container"></div>
-            
-            <div id="right-chat-input-container">
-              <!-- Model Selector & File Upload Button in a single row -->
-              <div id="right-model-file-container">
-                <!-- Model Dropdown -->
-                <select id="right-model-selector">
-                  <option value="deepseek">DeepSeek R1 Loacal</option>
-                  <option value="deepseek-r1:1.5b">DeepSeek R1</option>
-                  <option value="llama3.2">Llama 3.2</option>
-                </select>
-
-                <!-- File Upload Button -->
-                <input type="file" id="right-file-input" style="display: none" />
-                <button id="right-upload-btn" class="icon-button">📎</button>
-              </div>
-              
-              <div id="right-chat-input-row">
-                <input type="text" id="right-chat-input" placeholder="Type your message..." />
-                <button id="right-send-btn">
-                  <i class="fas fa-paper-plane"></i>
-                </button>
-              </div>
-
-            </div>
-          `;
-
-          // ✅ Attach event listeners after adding elements dynamically
-          const fileInput = document.getElementById("right-file-input");
-          const uploadBtn = document.getElementById("right-upload-btn");
-
-          if (fileInput && uploadBtn) {
-            uploadBtn.addEventListener("click", () => fileInput.click());
-
-            fileInput.addEventListener("change", function () {
-              if (fileInput.files.length > 0) {
-                const file = fileInput.files[0];
-                const formData = new FormData();
-                formData.append("file", file);
-
-                fetch("http://127.0.0.1:5000/upload", {
-                  method: "POST",
-                  body: formData,
-                })
-                  .then((response) => response.json())
-                  .then((data) => {
-                    console.log("File uploaded successfully:", data);
-                  })
-                  .catch((error) => console.error("Error uploading file:", error));
-              }
-            });
-          }
-
-            const rightChatHistoryContainer = document.getElementById(
-              "right-chat-history-container"
-            );
-
-            // Restore previous chat history
-            rightChatHistory.forEach(({ sender, text }) => {
-              const msgDiv = document.createElement("div");
-              msgDiv.classList.add("right-chat-message", sender);
-              msgDiv.textContent = text;
-              rightChatHistoryContainer.appendChild(msgDiv);
-            });
-
-            document
-              .getElementById("right-send-btn")
-              .addEventListener("click", rightSendMessage);
-            document
-              .getElementById("right-chat-input")
-              .addEventListener("keypress", (event) => {
-                if (event.key === "Enter") {
-                  event.preventDefault();
-                  rightSendMessage();
-                }
-              });
-          }
-        }
-
-        function rightSendMessage() {
-          const rightChatInput = document.getElementById("right-chat-input");
-          const message = rightChatInput.value.trim();
-          if (!message) return;
-
-          const rightChatHistoryContainer = document.getElementById(
-            "right-chat-history-container"
-          );
-
-          const addMessage = (sender, text) => {
-            const msgDiv = document.createElement("div");
-            msgDiv.classList.add("right-chat-message", sender);
-            msgDiv.textContent = text;
-            rightChatHistoryContainer.appendChild(msgDiv);
-            rightChatHistoryContainer.scrollTop =
-              rightChatHistoryContainer.scrollHeight;
-            rightChatHistory.push({ sender, text }); // Save to history
-          };
-
-          addMessage("user", message);
-          rightChatInput.value = "";
-
-          fetch("http://127.0.0.1:5000/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              message: message,
-              model: document.getElementById("right-model-selector").value,
-            }),
-          })
-            .then((response) => response.json())
-            .then((data) => addMessage("ai", data.response))
-            .catch((error) => console.error("Error sending message:", error));
-        }
-
-        function updateSidebarContent(view) {
-          sidebarContent.innerHTML = "";
-          
-          if (view === "file-explorer") {
-            sidebarContent.innerHTML = `
-            <div id="file-explorer-container">
-              <div id="file-list">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
-          `;
-            loadFileExplorer();
-          }
-        }
-
-        function loadFileExplorer() {
-          fetch("http://127.0.0.1:5000/files")
-            .then((response) => response.json())
-            .then((files) => {
-              const fileList = document.getElementById("file-list");
-              fileList.innerHTML = files
-                .map((file) => `<li>${file.name}</li>`)
-                .join("");
-            })
-            .catch((error) => console.error("Error loading files:", error));
-        }
-
-        fileExplorerBtn.addEventListener("click", () =>
-          toggleSidebar("file-explorer")
-        );
-        toggleRightSidebarBtn.addEventListener("click", () =>
-          rightToggleSidebar("right-chatbot")
-        );
-      });
-      
-    </script>
+    <!-- Monaco Editor -->
+    <script src="node_modules/monaco-editor/min/vs/loader.js"></script>
+    <!-- Terminal -->
+    <script src="node_modules/@xterm/xterm/lib/xterm.js"></script>
+    <script src="node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+    <script src="node_modules/@xterm/addon-web-links/lib/addon-web-links.js"></script>
+    <!-- Your scripts -->
+    <script src="tabs.js"></script>
+    <script src="terminal.js"></script>
+    <script src="renderer.js"></script>
+    <script src="file_explorer.js"></script>
+    <script src="chat.js"></script>
+    <script src="changes_handler.js"></script>
   </body>
 </html>
