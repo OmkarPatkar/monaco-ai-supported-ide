@@ -151,6 +151,7 @@ def chat():
         data = request.get_json()
         user_message = data.get("message", "").strip()
         model_name = data.get("model", DEFAULT_MODEL)
+        editor_context = data.get("context", "")  # Get editor context from request data
 
         if not user_message:
             return jsonify({"error": "Message cannot be empty."}), 400
@@ -162,79 +163,75 @@ def chat():
         # Retrieve relevant code snippets
         retrieved_context = retrieve_code_snippets(user_message)
         
-        # Add language instruction to the prompt
-        system_instruction = "Please respond in English. Be clear and concise."
-        formatted_prompt = f"System: {system_instruction}\n\n"
-        
-        if retrieved_context:
-            formatted_prompt += f"Context:\n{retrieved_context}\n\n"
-        
-        formatted_prompt += f"User Query:\n{user_message}"
+        # Format the prompt with context and history
+        if model_name == "deepseek-r1:8b":
+            # For 8B model, we'll use a more comprehensive prompt
+            system_prompt = """You are an AI coding assistant with access to the project's codebase. 
+            Analyze the context and previous conversation to provide accurate and relevant responses.
+            If you need to write code, make it production-ready and well-documented.
+            If you're unsure about something, ask for clarification."""
+            
+            # Combine all context
+            all_context = []
+            if retrieved_context:
+                all_context.append("Retrieved code context:\n" + retrieved_context)
+            if editor_context:
+                all_context.append("Current editor context:\n" + editor_context)
+            
+            context_str = "\n\n".join(all_context) if all_context else ""
+            
+            # Format conversation history
+            conversation_history = "\nPrevious conversation:\n"
+            for msg in chat_history[-5:]:  # Get last 5 messages
+                role = "User" if msg["role"] == "user" else "Assistant"
+                conversation_history += f"{role}: {msg['content']}\n"
+            
+            formatted_prompt = f"{system_prompt}\n\n"
+            if context_str:
+                formatted_prompt += f"Context:\n{context_str}\n\n"
+            formatted_prompt += f"{conversation_history}\nUser: {user_message}\nAssistant:"
+        else:
+            # For 1.5B model, use simpler prompt
+            system_instruction = "Please respond in English. Be clear and concise."
+            formatted_prompt = f"System: {system_instruction}\n\n"
+            if retrieved_context:
+                formatted_prompt += f"Context:\n{retrieved_context}\n\n"
+            if editor_context:
+                formatted_prompt += f"Current editor context:\n{editor_context}\n\n"
+            formatted_prompt += f"User Query:\n{user_message}"
 
         # Append user message to history
-        chat_history.append({"role": "user", "content": formatted_prompt})
+        chat_history.append({"role": "user", "content": user_message})
 
-        if model_name == "deepseek-r1:1.5b":
-            try:
-                # Ensure model is downloaded
-                download_model(model_name)
-                
-                # Initialize Ollama
+        try:
+            # Ensure model is downloaded
+            download_model(model_name)
+            
+            # Initialize Ollama with appropriate parameters based on model
+            if model_name == "deepseek-r1:8b":
+                llm = OllamaLLM(
+                    model=model_name,
+                    temperature=0.7,
+                    top_p=0.9,
+                    top_k=40,
+                    num_ctx=4096  # Larger context window for 8B model
+                )
+            else:
                 llm = OllamaLLM(model=model_name)
-                
-                # Get AI response
-                ai_response = llm.invoke(formatted_prompt)
-                
-                # Clean the response
-                ai_response = clean_response(ai_response)
-                
-                # Append AI response to history
-                chat_history.append({"role": "assistant", "content": ai_response})
-                
-                return jsonify({"response": ai_response}), 200
-                
-            except Exception as e:
-                print(f"❌ Error with local model: {str(e)}")
-                return jsonify({"error": f"Error with local model: {str(e)}"}), 500
-
-        elif model_name == "mistral-7b":
-            # Construct the prompt from chat history
-            prompt = '\n'.join([f"{msg['role']}: {msg['content']}" for msg in chat_history])
-            print(f'prompt : {prompt}')
-
-            # Prepare payload for Together AI API
-            payload = {
-                'model': 'mistralai/Mixtral-8x7B-v0.1',
-                'prompt': prompt,
-                'max_tokens': 300,
-                'stop': ['</s>']
-            }
-
-            headers = {
-                'Authorization': f'Bearer {TOGETHER_API_KEY}',
-                'Content-Type': 'application/json'
-            }
-
-            # Make request to Together AI API
-            response = requests.post(TOGETHER_URL, json=payload, headers=headers)
-            result = response.json()
-            print(f'result : {result}')
-
-            if 'error' in result:
-                return jsonify({'error': result['error']}), 500
-
-            # Extract AI response
-            ai_message = result['choices'][0]['text'].strip()
-
-            print(ai_message)
-
-            # Append AI response to chat history
-            chat_history.append({'role': 'assistant', 'content': ai_message})
-
-            return jsonify({'response': ai_message}), 200
-
-        else:
-            return jsonify({"error": "Unsupported model"}), 400
+            
+            # Get AI response
+            ai_response = llm.invoke(formatted_prompt)
+            
+            # Clean the response
+            ai_response = clean_response(ai_response)
+            
+            # Append AI response to history
+            chat_history.append({"role": "assistant", "content": ai_response})
+            
+            return jsonify({"response": ai_response}), 200
+        except Exception as e:
+            print(f"❌ Error with local model: {str(e)}")
+            return jsonify({"error": f"Error with local model: {str(e)}"}), 500
 
     except Exception as e:
         print(f"❌ Error: {str(e)}")
