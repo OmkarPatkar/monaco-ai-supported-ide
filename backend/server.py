@@ -16,6 +16,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import difflib
 import tempfile
 import shlex
+import shutil
 
 # Load environment variables from .env
 load_dotenv()
@@ -151,7 +152,7 @@ def chat():
         data = request.get_json()
         user_message = data.get("message", "").strip()
         model_name = data.get("model", DEFAULT_MODEL)
-        editor_context = data.get("context", "")  # Get editor context from request data
+        editor_context = data.get("context", "")  # Get editor context from request
 
         if not user_message:
             return jsonify({"error": "Message cannot be empty."}), 400
@@ -435,6 +436,82 @@ def get_directory_tree(directory):
         return entries
     except PermissionError:
         return []  # Return empty list for directories we can't access
+
+@app.route('/api/files', methods=['POST'])
+def create_file():
+    try:
+        data = request.get_json()
+        file_path = data.get('path')
+        content = data.get('content', '')
+        
+        if not file_path:
+            return jsonify({"error": "File path is required"}), 400
+            
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        
+        # Create and write to file
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+            
+        return jsonify({"message": f"File created: {file_path}"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/files', methods=['PUT'])
+def update_file():
+    try:
+        data = request.get_json()
+        file_path = data.get('path')
+        content = data.get('content')
+        
+        if not file_path or content is None:
+            return jsonify({"error": "File path and content are required"}), 400
+            
+        # Update file
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+            
+        return jsonify({"message": f"File updated: {file_path}"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/files', methods=['DELETE'])
+def delete_file():
+    try:
+        data = request.get_json()
+        file_path = data.get('path')
+        
+        if not file_path:
+            return jsonify({"error": "File path is required"}), 400
+            
+        # Delete file
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+        elif os.path.isdir(file_path):
+            shutil.rmtree(file_path)
+        else:
+            return jsonify({"error": "File or directory not found"}), 404
+            
+        return jsonify({"message": f"Deleted: {file_path}"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/directories', methods=['POST'])
+def create_directory():
+    try:
+        data = request.get_json()
+        dir_path = data.get('path')
+        
+        if not dir_path:
+            return jsonify({"error": "Directory path is required"}), 400
+            
+        # Create directory
+        os.makedirs(dir_path, exist_ok=True)
+        
+        return jsonify({"message": f"Directory created: {dir_path}"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
