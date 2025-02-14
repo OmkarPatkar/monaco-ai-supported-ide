@@ -155,7 +155,7 @@ code {
 /* right sidebar */
 #right-sidebar {
   width: 300px;
-  min-width: 200px;
+  min-width: 450px;
   max-width: 600px;
   background-color: #252526;
   border-left: 1px solid #3c3c3c;
@@ -310,21 +310,67 @@ code {
 
 .chat-message.ai .chat-message-content ul,
 .chat-message.ai .chat-message-content ol {
-  margin: 8px 0;
-  padding-left: 24px;
+  margin: 12px 0;
+  padding-left: 28px;
+  list-style-position: outside;
 }
 
-.chat-message.ai .chat-message-content li {
+.chat-message.ai .chat-message-content ul {
+  list-style-type: disc;
+}
+
+.chat-message.ai .chat-message-content ul ul {
+  list-style-type: circle;
   margin: 4px 0;
 }
 
-.chat-message.ai .chat-message-content a {
-  color: #569cd6;
-  text-decoration: none;
+.chat-message.ai .chat-message-content ul ul ul {
+  list-style-type: square;
 }
 
-.chat-message.ai .chat-message-content a:hover {
-  text-decoration: underline;
+.chat-message.ai .chat-message-content ol {
+  list-style-type: decimal;
+}
+
+.chat-message.ai .chat-message-content ol ol {
+  list-style-type: lower-alpha;
+  margin: 4px 0;
+}
+
+.chat-message.ai .chat-message-content ol ol ol {
+  list-style-type: lower-roman;
+}
+
+.chat-message.ai .chat-message-content li {
+  margin: 8px 0;
+  line-height: 1.6;
+  color: #d4d4d4;
+}
+
+.chat-message.ai .chat-message-content li p {
+  margin: 4px 0;
+}
+
+/* Indentation for nested content */
+.chat-message.ai .chat-message-content li > ul,
+.chat-message.ai .chat-message-content li > ol {
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+
+/* Spacing between sections */
+.chat-message.ai .chat-message-content > *:not(:last-child) {
+  margin-bottom: 16px;
+}
+
+/* Bullet point color */
+.chat-message.ai .chat-message-content ul > li::marker {
+  color: #569cd6;
+}
+
+/* Number color for ordered lists */
+.chat-message.ai .chat-message-content ol > li::marker {
+  color: #569cd6;
 }
 
 .chat-message.ai .chat-message-content blockquote {
@@ -478,12 +524,13 @@ code {
   font-size: 14px;
 }
 
-/* Code block styles update */
+/* Code block styles */
 .code-block {
   margin: 8px 0;
   background-color: #1e1e1e;
-  border-radius: 6px;
   border: 1px solid #2d2d2d;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .code-block-header {
@@ -507,21 +554,74 @@ code {
 }
 
 .code-action-btn {
-  background: none;
+  padding: 6px 12px;
   border: none;
-  color: #858585;
-  padding: 4px 8px;
-  font-size: 12px;
+  border-radius: 4px;
   cursor: pointer;
+  font-size: 12px;
   display: flex;
   align-items: center;
   gap: 4px;
-  border-radius: 3px;
+  background: transparent;
+  color: #858585;
+  transition: all 0.2s ease;
 }
 
 .code-action-btn:hover {
   background-color: #2a2d2e;
   color: #ffffff;
+}
+
+.code-action-btn.accept {
+  color: #2ea043;
+}
+
+.code-action-btn.accept:hover {
+  background-color: rgba(46, 160, 67, 0.1);
+}
+
+.code-action-btn.apply {
+  color: #58a6ff;
+}
+
+.code-action-btn.apply:hover {
+  background-color: rgba(88, 166, 255, 0.1);
+}
+
+.code-action-btn.reject {
+  color: #f85149;
+}
+
+.code-action-btn.reject:hover {
+  background-color: rgba(248, 81, 73, 0.1);
+}
+
+.code-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent !important;
+}
+
+.code-action-btn:disabled:hover {
+  background: transparent !important;
+}
+
+/* Applied state feedback */
+.code-block.applied {
+  border-color: #2ea043;
+}
+
+.code-block.applied .code-block-header {
+  background-color: rgba(46, 160, 67, 0.1);
+}
+
+/* Suggested state feedback */
+.code-block.suggested {
+  border-color: #58a6ff;
+}
+
+.code-block.suggested .code-block-header {
+  background-color: rgba(88, 166, 255, 0.1);
 }
 
 .code-block pre {
@@ -598,11 +698,13 @@ code {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
   overflow: hidden;
 }
 
 #editor {
   flex: 1;
+  position: relative;
   overflow: hidden;
 }
 
@@ -1077,8 +1179,25 @@ code {
   background: #1e1e1e;
   border: 1px solid #3c3c3c;
   border-radius: 6px;
-  margin: 8px 0;
+  /* margin: 8px 0; */
   overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.command-header {
+  padding: 8px 12px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  font-size: 12px;
+  color: #cccccc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.command-header i {
+  color: #569cd6;
 }
 
 .command {
@@ -1104,6 +1223,8 @@ code {
   font-family: 'Menlo', 'Monaco', monospace;
   font-size: 12px;
   white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
   overflow-x: auto;
 }
 
@@ -1115,6 +1236,8 @@ code {
   font-family: 'Menlo', 'Monaco', monospace;
   font-size: 12px;
   white-space: pre-wrap;
+  word-wrap: break-word;
+  max-width: 100%;
   overflow-x: auto;
   border-top: 1px solid #3c3c3c;
 }
@@ -1710,16 +1833,19 @@ code {
 
 /* Terminal Panel */
 #terminal-panel {
+    position: absolute;
+    bottom: 22px; /* Account for status bar */
+    left: 0;
+    right: 0;
     height: 300px;
     min-height: 150px;
     max-height: 50vh;
     border-top: 1px solid #333;
-    position: relative;
     display: flex;
     flex-direction: column;
     background-color: #1e1e1e;
     transition: height 0.3s ease;
-    overflow: hidden;
+    z-index: 10;
 }
 
 #terminal-panel.collapsed {
@@ -1922,4 +2048,160 @@ code {
 .tab-action-btn:hover {
     background-color: #3c3c3c;
     color: #ffffff;
+}
+
+/* Command Block Styles */
+.command-block {
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    border-radius: 6px;
+    margin: 8px 0;
+    padding: 12px;
+    position: relative;
+}
+
+.command-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Menlo', 'Monaco', monospace;
+    font-size: 12px;
+    color: #d4d4d4;
+    margin-bottom: 8px;
+}
+
+.command-prompt {
+    color: #2ea043;
+    user-select: none;
+}
+
+.command-text {
+    flex: 1;
+    word-break: break-all;
+}
+
+.command-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Rejected state styles */
+.command-block.rejected,
+.code-block.rejected {
+    opacity: 0.7;
+    border-color: #f85149;
+}
+
+.command-rejection {
+    margin-top: 8px;
+    color: #f85149;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.command-rejection i {
+    font-size: 14px;
+}
+
+/* Update code action buttons */
+.code-action-btn.reject {
+    color: #f85149;
+}
+
+.code-action-btn.reject:hover {
+    background-color: rgba(248, 81, 73, 0.1);
+}
+
+.code-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.code-action-btn:disabled:hover {
+    background: none;
+    color: inherit;
+}
+
+/* Status Bar */
+#status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 22px;
+    background-color: #007acc;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    z-index: 1000;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    height: 100%;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.status-item:last-child {
+    border-right: none;
+}
+
+.status-item i {
+    margin-right: 5px;
+    font-size: 11px;
+}
+
+.status-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+/* Adjust editor container to account for status bar */
+#editor-container {
+    padding-bottom: 22px;
+}
+
+/* Adjust terminal panel to account for status bar */
+#terminal-panel {
+    bottom: 22px;
+}
+
+/* Monaco Editor Minimap Styles */
+.monaco-editor .minimap {
+    opacity: 0.6;
+    background-color: #1e1e1e;
+    box-shadow: -1px 0 0 rgba(0, 0, 0, 0.2);
+}
+
+.monaco-editor .minimap-slider {
+    background: rgba(100, 100, 100, 0.4);
+}
+
+.monaco-editor .minimap-slider:hover {
+    background: rgba(100, 100, 100, 0.7);
+}
+
+.monaco-editor .minimap-slider.active {
+    background: rgba(0, 122, 204, 0.6);
+}
+
+/* Ensure proper stacking of components */
+.monaco-editor {
+    z-index: 1;
+}
+
+#terminal-panel {
+    z-index: 2;
+}
+
+#status-bar {
+    z-index: 3;
 }

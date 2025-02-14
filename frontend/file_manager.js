@@ -110,12 +110,52 @@ class FileManager {
     getLanguageFromPath(filepath) {
         const ext = filepath.split('.').pop().toLowerCase();
         const languageMap = {
+            // Web Development
             'js': 'javascript',
-            'py': 'python',
+            'jsx': 'javascript',
+            'ts': 'typescript',
+            'tsx': 'typescript',
             'html': 'html',
+            'htm': 'html',
             'css': 'css',
+            'scss': 'scss',
+            'less': 'less',
             'json': 'json',
-            'md': 'markdown'
+            'xml': 'xml',
+            'svg': 'xml',
+            
+            // Backend Languages
+            'py': 'python',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'cs': 'csharp',
+            'go': 'go',
+            'rs': 'rust',
+            'rb': 'ruby',
+            'php': 'php',
+            
+            // Shell Scripts
+            'sh': 'shell',
+            'bash': 'shell',
+            'zsh': 'shell',
+            
+            // Configuration & Data
+            'yml': 'yaml',
+            'yaml': 'yaml',
+            'toml': 'toml',
+            'ini': 'ini',
+            'env': 'plaintext',
+            
+            // Documentation
+            'md': 'markdown',
+            'txt': 'plaintext',
+            'log': 'plaintext',
+            
+            // SQL
+            'sql': 'sql',
+            'pgsql': 'sql',
+            'mysql': 'sql'
         };
         return languageMap[ext] || 'plaintext';
     }

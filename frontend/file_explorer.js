@@ -248,19 +248,169 @@ class FileExplorer {
 
     getMonacoLanguage(extension) {
         const languageMap = {
+            // Web Development
             'js': 'javascript',
-            'py': 'python',
+            'jsx': 'javascript',
+            'ts': 'typescript',
+            'tsx': 'typescript',
             'html': 'html',
+            'htm': 'html',
             'css': 'css',
+            'scss': 'scss',
+            'less': 'less',
             'json': 'json',
+            'xml': 'xml',
+            'svg': 'xml',
+            
+            // Backend Languages
+            'py': 'python',
+            'java': 'java',
+            'cpp': 'cpp',
+            'c': 'c',
+            'cs': 'csharp',
+            'go': 'go',
+            'rs': 'rust',
+            'rb': 'ruby',
+            'php': 'php',
+            
+            // Shell Scripts
+            'sh': 'shell',
+            'bash': 'shell',
+            'zsh': 'shell',
+            
+            // Configuration & Data
+            'yml': 'yaml',
+            'yaml': 'yaml',
+            'toml': 'toml',
+            'ini': 'ini',
+            'env': 'plaintext',
+            
+            // Documentation
             'md': 'markdown',
-            'txt': 'plaintext'
+            'txt': 'plaintext',
+            'log': 'plaintext',
+            
+            // SQL
+            'sql': 'sql',
+            'pgsql': 'sql',
+            'mysql': 'sql'
         };
-        return languageMap[extension] || 'plaintext';
+        return languageMap[extension.toLowerCase()] || 'plaintext';
+    }
+
+    async createFile(filePath, content = '') {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/files', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: filePath,
+                    content: content
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create file');
+            }
+
+            await this.loadFileTree();
+            showToast(`Created file: ${filePath}`);
+            return true;
+        } catch (error) {
+            console.error('Error creating file:', error);
+            showToast(`Error creating file: ${error.message}`);
+            return false;
+        }
+    }
+
+    async updateFile(filePath, content) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/files', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: filePath,
+                    content: content
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update file');
+            }
+
+            showToast(`Updated file: ${filePath}`);
+            return true;
+        } catch (error) {
+            console.error('Error updating file:', error);
+            showToast(`Error updating file: ${error.message}`);
+            return false;
+        }
+    }
+
+    async deleteFile(filePath) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/files', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: filePath
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to delete file');
+            }
+
+            await this.loadFileTree();
+            showToast(`Deleted file: ${filePath}`);
+            return true;
+        } catch (error) {
+            console.error('Error deleting file:', error);
+            showToast(`Error deleting file: ${error.message}`);
+            return false;
+        }
+    }
+
+    async createDirectory(dirPath) {
+        try {
+            const response = await fetch('http://127.0.0.1:5000/api/directories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    path: dirPath
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create directory');
+            }
+
+            await this.loadFileTree();
+            showToast(`Created directory: ${dirPath}`);
+            return true;
+        } catch (error) {
+            console.error('Error creating directory:', error);
+            showToast(`Error creating directory: ${error.message}`);
+            return false;
+        }
+    }
+
+    // Make the file explorer instance globally accessible
+    static getInstance() {
+        if (!window.fileExplorer) {
+            window.fileExplorer = new FileExplorer();
+        }
+        return window.fileExplorer;
     }
 }
 
-// Initialize file explorer when document is ready
-document.addEventListener('DOMContentLoaded', () => {
-    window.fileExplorer = new FileExplorer();
-}); 
+// Export the class for use in other files
+window.FileExplorer = FileExplorer; 

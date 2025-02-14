@@ -13,7 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
       theme: 'vs-dark',
       automaticLayout: true,
       minimap: {
-        enabled: true
+        enabled: true,
+        renderCharacters: false,
+        maxColumn: 120,
+        scale: 0.8,
+        showSlider: 'mouseover'
       },
       fontSize: 14,
       fontFamily: 'Menlo, Monaco, Consolas, monospace',
@@ -28,14 +32,176 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Add language detection
+    window.editor.onDidChangeModelContent(() => {
+      const model = window.editor.getModel();
+      if (!model) return;
+
+      const content = model.getValue();
+      const detectedLanguage = detectLanguage(content);
+      
+      if (detectedLanguage && detectedLanguage !== model.getLanguageId()) {
+        monaco.editor.setModelLanguage(model, detectedLanguage);
+        updateStatusBar(detectedLanguage);
+      }
+    });
+
+    // Function to detect language based on content
+    function detectLanguage(content) {
+      // Common language patterns
+      const patterns = {
+        javascript: /^(const|let|var|function|import|export|class)\s|^\s*\/\/|^\s*\/\*|\.js$/i,
+        typescript: /^(interface|type|enum|namespace)|:\s*(string|number|boolean|any)\s*[,;=]|\.ts$/i,
+        html: /^<!DOCTYPE|<html|<head|<body|<script|<style|<div|<p|<span/i,
+        css: /^(\.|#|@media|@import|body|html|div|span)\s*{|\s*{\s*[\w-]+\s*:/i,
+        python: /^(def|class|import|from|if\s+__name__|print|#)\s|\.py$/i,
+        java: /^(public|private|protected|class|interface|enum|package)\s|\.java$/i,
+        php: /<\?php|\$[a-zA-Z_]|\.php$/i,
+        ruby: /^(def|class|module|require|gem|puts)\s|\.rb$/i,
+        sql: /^(SELECT|INSERT|UPDATE|DELETE|CREATE|DROP|ALTER|FROM|WHERE)\s/i,
+        markdown: /^#\s|^-\s|^>\s|^```|\.md$/i,
+        json: /^[\s\n]*[{\[]/
+      };
+
+      for (const [language, pattern] of Object.entries(patterns)) {
+        if (pattern.test(content)) {
+          return language;
+        }
+      }
+
+      return 'plaintext';
+    }
+
+    // Function to update status bar
+    function updateStatusBar(language) {
+      const languageElement = document.querySelector('#status-bar .language-name');
+      if (languageElement) {
+        // Convert language ID to display name
+        const displayName = getLanguageDisplayName(language);
+        languageElement.textContent = displayName;
+        
+        // Update icon based on language
+        const icon = languageElement.parentElement.querySelector('i');
+        icon.className = getLanguageIcon(language);
+      }
+    }
+
+    function getLanguageDisplayName(language) {
+      const languageMap = {
+        'javascript': 'JavaScript',
+        'typescript': 'TypeScript',
+        'html': 'HTML',
+        'css': 'CSS',
+        'scss': 'SCSS',
+        'less': 'Less',
+        'json': 'JSON',
+        'xml': 'XML',
+        'python': 'Python',
+        'java': 'Java',
+        'cpp': 'C++',
+        'c': 'C',
+        'csharp': 'C#',
+        'go': 'Go',
+        'rust': 'Rust',
+        'ruby': 'Ruby',
+        'php': 'PHP',
+        'shell': 'Shell Script',
+        'yaml': 'YAML',
+        'toml': 'TOML',
+        'ini': 'INI',
+        'sql': 'SQL',
+        'markdown': 'Markdown',
+        'plaintext': 'Plain Text'
+      };
+      return languageMap[language] || language;
+    }
+
+    function getLanguageIcon(language) {
+      const iconMap = {
+        'javascript': 'fab fa-js',
+        'typescript': 'fab fa-js',
+        'html': 'fab fa-html5',
+        'css': 'fab fa-css3',
+        'scss': 'fab fa-sass',
+        'less': 'fab fa-css3',
+        'python': 'fab fa-python',
+        'java': 'fab fa-java',
+        'php': 'fab fa-php',
+        'ruby': 'fab fa-ruby',
+        'markdown': 'fas fa-file-alt',
+        'shell': 'fas fa-terminal',
+        'sql': 'fas fa-database'
+      };
+      return iconMap[language] || 'fas fa-code';
+    }
+
     // Register common languages
     monaco.languages.register({ id: 'python' });
     monaco.languages.register({ id: 'javascript' });
+    monaco.languages.register({ id: 'typescript' });
     monaco.languages.register({ id: 'html' });
     monaco.languages.register({ id: 'css' });
+    monaco.languages.register({ id: 'scss' });
+    monaco.languages.register({ id: 'less' });
     monaco.languages.register({ id: 'json' });
+    monaco.languages.register({ id: 'xml' });
+    monaco.languages.register({ id: 'java' });
+    monaco.languages.register({ id: 'cpp' });
+    monaco.languages.register({ id: 'c' });
+    monaco.languages.register({ id: 'csharp' });
+    monaco.languages.register({ id: 'go' });
+    monaco.languages.register({ id: 'rust' });
+    monaco.languages.register({ id: 'ruby' });
+    monaco.languages.register({ id: 'php' });
+    monaco.languages.register({ id: 'shell' });
+    monaco.languages.register({ id: 'yaml' });
+    monaco.languages.register({ id: 'toml' });
+    monaco.languages.register({ id: 'ini' });
+    monaco.languages.register({ id: 'sql' });
     monaco.languages.register({ id: 'markdown' });
     monaco.languages.register({ id: 'plaintext' });
+
+    // Load language features
+    require(['vs/language/typescript/tsWorker'], function() {
+        // TypeScript/JavaScript language features
+        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+            noSemanticValidation: false,
+            noSyntaxValidation: false,
+        });
+        
+        monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+            noSemanticValidation: false,
+            noSyntaxValidation: false,
+        });
+    });
+
+    // Set language configuration for better editing experience
+    const languages = ['javascript', 'typescript', 'python', 'java', 'cpp', 'c', 'csharp', 'go', 'rust', 'ruby', 'php'];
+    languages.forEach(language => {
+        monaco.languages.setLanguageConfiguration(language, {
+            brackets: [
+                ['{', '}'],
+                ['[', ']'],
+                ['(', ')']
+            ],
+            autoClosingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" },
+                { open: '`', close: '`' }
+            ],
+            surroundingPairs: [
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '"', close: '"' },
+                { open: "'", close: "'" },
+                { open: '`', close: '`' }
+            ]
+        });
+    });
 
     // Initialize tab manager after Monaco is ready
     window.tabManager = new TabManager();
@@ -134,7 +300,7 @@ function extractCommands(response) {
     const commands = [];
     const regex = /\$ (.*?)(?:\n|$)/g;
     let match;
-
+    
     while ((match = regex.exec(response)) !== null) {
         commands.push(match[1].trim());
     }
@@ -309,16 +475,24 @@ function initializeChatFunctionality() {
     function formatMessageContent(content) {
         if (typeof content !== 'string') return '';
         
-        return content.replace(/```(\w+)?\n([\s\S]+?)```/g, (match, language, code) => {
+        // First, handle code blocks with file paths (```language:path)
+        content = content.replace(/```(\w+):([^\n]+)\n([\s\S]+?)```/g, (match, language, path, code) => {
             const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
             return `
                 <div class="code-block" id="${uniqueId}">
                     <div class="code-block-header">
-                        <div class="code-language">${language || 'plaintext'}</div>
+                        <div class="code-language">
+                            <i class="fas fa-file-code"></i>
+                            ${path}
+                        </div>
                         <div class="code-actions">
-                            <button class="code-action-btn accept" onclick="acceptCode('${uniqueId}')">
+                            <button class="code-action-btn accept" onclick="applyToFile('${uniqueId}', '${path}')">
                                 <i class="fas fa-check"></i>
                                 Accept
+                            </button>
+                            <button class="code-action-btn apply" onclick="suggestToFile('${uniqueId}', '${path}')">
+                                <i class="fas fa-file-import"></i>
+                                Suggest
                             </button>
                             <button class="code-action-btn copy" onclick="copyCode('${uniqueId}')">
                                 <i class="fas fa-copy"></i>
@@ -326,10 +500,78 @@ function initializeChatFunctionality() {
                             </button>
                         </div>
                     </div>
-                    <pre><code class="language-${language || 'plaintext'}">${escapeHtml(code.trim())}</code></pre>
+                    <pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>
                 </div>
             `;
         });
+        
+        // Then handle regular code blocks (```language)
+        content = content.replace(/```(\w+)\n([\s\S]+?)```/g, (match, language, code) => {
+            const uniqueId = 'code-' + Math.random().toString(36).substr(2, 9);
+            const isTerminalCommand = language === 'bash' || language === 'shell';
+            
+            return `
+                <div class="code-block" id="${uniqueId}">
+                    <div class="code-block-header">
+                        <div class="code-language">
+                            <i class="fas ${isTerminalCommand ? 'fa-terminal' : 'fa-code'}"></i>
+                            ${language}
+                        </div>
+                        <div class="code-actions">
+                            ${isTerminalCommand ? `
+                                <button class="code-action-btn run" onclick="runInTerminal('${uniqueId}')">
+                                    <i class="fas fa-play"></i>
+                                    Run in Terminal
+                                </button>
+                                <button class="code-action-btn reject" onclick="rejectCommand('${uniqueId}')">
+                                    <i class="fas fa-times"></i>
+                                    Reject
+                                </button>
+                            ` : `
+                                <button class="code-action-btn insert" onclick="insertInEditor('${uniqueId}')">
+                                    <i class="fas fa-file-import"></i>
+                                    Insert in Editor
+                                </button>
+                            `}
+                            <button class="code-action-btn copy" onclick="copyCode('${uniqueId}')">
+                                <i class="fas fa-copy"></i>
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                    <pre><code class="language-${language}">${escapeHtml(code.trim())}</code></pre>
+                </div>
+            `;
+        });
+
+        // Handle inline commands ($ command)
+        content = content.replace(/\$ (.*?)(?:\n|$)/g, (match, command) => {
+            const uniqueId = 'cmd-' + Math.random().toString(36).substr(2, 9);
+            return `
+                <div class="command-block" id="${uniqueId}">
+                    <div class="command-content">
+                        <span class="command-prompt">$</span>
+                        <span class="command-text">${escapeHtml(command)}</span>
+                    </div>
+                    <div class="command-actions">
+                        <button class="code-action-btn run" onclick="runInTerminal('${uniqueId}')">
+                            <i class="fas fa-play"></i>
+                            Run
+                        </button>
+                        <button class="code-action-btn reject" onclick="rejectCommand('${uniqueId}')">
+                            <i class="fas fa-times"></i>
+                            Reject
+                        </button>
+                        <button class="code-action-btn copy" onclick="copyCode('${uniqueId}')">
+                            <i class="fas fa-copy"></i>
+                            Copy
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        return content;
     }
 
     function escapeHtml(text) {
@@ -355,20 +597,160 @@ function initializeChatFunctionality() {
         }
     }
 
-    // Function to accept and apply code
-    window.acceptCode = function(blockId) {
+    // Function to apply code to a file with agentic behavior
+    window.applyToFile = async function(blockId, filePath) {
         const codeBlock = document.getElementById(blockId);
         const code = codeBlock.querySelector('code').textContent;
-        const language = codeBlock.querySelector('.code-language').textContent;
+        
+        try {
+            // Check if file exists
+            const response = await fetch(`http://127.0.0.1:5000/file?path=${encodeURIComponent(filePath)}`);
+            const fileExists = response.ok;
+            
+            if (fileExists) {
+                // Show confirmation dialog for existing file
+                if (!confirm(`File "${filePath}" already exists. Do you want to apply these changes?`)) {
+                    return;
+                }
+                
+                // Get current file content for comparison
+                const currentContent = await response.json();
+                if (currentContent.content === code) {
+                    showToast('No changes to apply - content is identical');
+                    return;
+                }
+            }
+            
+            // Use FileExplorer instance to create/update file
+            const fileExplorer = FileExplorer.getInstance();
+            const success = fileExists 
+                ? await fileExplorer.updateFile(filePath, code)
+                : await fileExplorer.createFile(filePath, code);
+                
+            if (success) {
+                showToast(`${fileExists ? 'Updated' : 'Created'} file: ${filePath}`);
+                // Refresh file tree
+                await fileExplorer.loadFileTree();
+                
+                // Disable the accept button and add visual feedback
+                const acceptBtn = codeBlock.querySelector('.code-action-btn.accept');
+                if (acceptBtn) {
+                    acceptBtn.disabled = true;
+                    acceptBtn.innerHTML = '<i class="fas fa-check"></i> Applied';
+                }
+                
+                // If the file is currently open in the editor, refresh its content
+                if (window.tabManager) {
+                    const model = window.tabManager.models.get(filePath);
+                    if (model) {
+                        model.setValue(code);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error applying code to file:', error);
+            showToast(`Error ${fileExists ? 'updating' : 'creating'} file: ${error.message}`);
+        }
+    }
 
-        // If we have an editor instance, insert the code
+    // Function to suggest changes to a file
+    window.suggestToFile = async function(blockId, filePath) {
+        const codeBlock = document.getElementById(blockId);
+        const code = codeBlock.querySelector('code').textContent;
+        
+        try {
+            // Create a change proposal
+            const change = {
+                type: 'update',
+                path: filePath,
+                content: code,
+                language: codeBlock.querySelector('code').className.replace('language-', '')
+            };
+            
+            // Show changes in the changes handler
+            window.changesHandler.showChanges([change]);
+            
+            // Disable the suggest button and add visual feedback
+            const suggestBtn = codeBlock.querySelector('.code-action-btn.apply');
+            if (suggestBtn) {
+                suggestBtn.disabled = true;
+                suggestBtn.innerHTML = '<i class="fas fa-check"></i> Suggested';
+            }
+            
+        } catch (error) {
+            console.error('Error suggesting changes:', error);
+            showToast(`Error suggesting changes: ${error.message}`);
+        }
+    }
+
+    // Function to run code in terminal
+    window.runInTerminal = async function(blockId) {
+        const codeBlock = document.getElementById(blockId);
+        const command = codeBlock.querySelector('code').textContent.trim();
+        
+        try {
+            const result = await window.changesHandler.executeCommand(command);
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            
+            // Create command execution message
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message system';
+            
+            let content = `<div class="command-execution">`;
+            content += `<div class="command-header"><i class="fas fa-terminal"></i> Terminal Output</div>`;
+            content += `<div class="command">$ ${command}</div>`;
+            
+            if (result.stdout) {
+                content += `<pre class="command-output">${result.stdout}</pre>`;
+            }
+            
+            if (result.stderr) {
+                content += `<pre class="command-error">${result.stderr}</pre>`;
+            }
+            
+            content += `</div>`;
+            messageDiv.innerHTML = content;
+            
+            document.getElementById('chat-messages').appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
+        } catch (error) {
+            console.error('Error executing command:', error);
+            showToast('Failed to execute command: ' + error.message);
+        }
+    }
+
+    // Function to insert code in editor
+    window.insertInEditor = function(blockId) {
+        const codeBlock = document.getElementById(blockId);
+        const code = codeBlock.querySelector('code').textContent;
+        
         if (window.editor && typeof window.editor.getValue === 'function') {
             const currentValue = window.editor.getValue();
             const newValue = currentValue ? currentValue + '\n\n' + code : code;
             window.editor.setValue(newValue);
-            showToast('Code applied to editor');
+            showToast('Code inserted in editor');
         } else {
             showToast('No editor available');
+        }
+    }
+
+    // Function to reject a command
+    window.rejectCommand = function(blockId) {
+        const block = document.getElementById(blockId);
+        if (block) {
+            // Add a visual indication that the command was rejected
+            block.classList.add('rejected');
+            // Add rejection message
+            const rejectionMsg = document.createElement('div');
+            rejectionMsg.className = 'command-rejection';
+            rejectionMsg.innerHTML = '<i class="fas fa-times-circle"></i> Command rejected';
+            block.appendChild(rejectionMsg);
+            // Disable the action buttons
+            const buttons = block.querySelectorAll('.code-action-btn');
+            buttons.forEach(btn => btn.disabled = true);
+            showToast('Command rejected');
         }
     }
 
