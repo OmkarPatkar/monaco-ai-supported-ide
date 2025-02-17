@@ -1,172 +1,169 @@
-// // // main.js
-// // const { app, BrowserWindow } = require('electron');
-// // const path = require('path');
-
-// // function createWindow() {
-// //   const win = new BrowserWindow({
-// //     width: 1200,
-// //     height: 800,
-// //     webPreferences: {
-// //       nodeIntegration: true,
-// //       contextIsolation: false
-// //     }
-// //   });
-
-// //   win.loadFile('index.html');
-// // }
-
-// // app.whenReady().then(createWindow);
-
-// // app.on('window-all-closed', () => {
-// //   if (process.platform !== 'darwin') {
-// //     app.quit();
-// //   }
-// // });
-
-
-
-
-
-
-// const { app, BrowserWindow, ipcMain, dialog } = require('electron');
-// const fs = require('fs');
-// const path = require('path');
-
-// let mainWindow;
-
-// function createWindow() {
-//   mainWindow = new BrowserWindow({
-//     width: 1200,
-//     height: 800,
-//     webPreferences: {
-//       nodeIntegration: true,
-//       contextIsolation: false,
-//       enableRemoteModule: true
-//     }
-//   });
-
-//   mainWindow.loadFile('index.html');
-// }
-
-// // Handle file operations
-// ipcMain.handle('open-file-dialog', async (event) => {
-//   const result = await dialog.showOpenDialog({
-//     properties: ['openFile', 'multiSelections']
-//   });
-//   return result.filePaths;
-// });
-
-// ipcMain.handle('read-file', async (event, filePath) => {
-//   return fs.promises.readFile(filePath, 'utf-8');
-// });
-
-// ipcMain.handle('read-directory', async (event, dirPath) => {
-//   const files = await fs.promises.readdir(dirPath, { withFileTypes: true });
-//   return files.map(dirent => ({
-//     name: dirent.name,
-//     path: path.join(dirPath, dirent.name),
-//     isDirectory: dirent.isDirectory()
-//   }));
-// });
-
-// app.whenReady().then(createWindow);
-
-
-// 1
-
-// const { app, BrowserWindow, Menu } = require('electron');
-
-// function createWindow() {
-//   const win = new BrowserWindow({
-//     width: 1200,
-//     height: 800,
-//     webPreferences: {
-//       nodeIntegration: true,
-//       contextIsolation: false
-//     }
-//   });
-
-//   win.loadFile('index.html');
-
-//   // ✅ Fix: Show menu bar explicitly
-//   win.setMenuBarVisibility(true);
-
-//   // ✅ Fix: Set default menu
-//   const menu = Menu.buildFromTemplate([
-//     {
-//       label: "File",
-//       submenu: [
-//         { role: "quit" }
-//       ]
-//     },
-//     {
-//       label: "Edit",
-//       submenu: [
-//         { role: "undo" },
-//         { role: "redo" },
-//         { type: "separator" },
-//         { role: "cut" },
-//         { role: "copy" },
-//         { role: "paste" }
-//       ]
-//     },
-//     {
-//       label: "Help",
-//       submenu: [
-//         { label: "About" }
-//       ]
-//     }
-//   ]);
-//   Menu.setApplicationMenu(menu);
-// }
-
-// app.whenReady().then(createWindow);
-
-// app.on('window-all-closed', () => {
-//   if (process.platform !== 'darwin') {
-//     app.quit();
-//   }
-// });
-
-
-
-// 2
-
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
+const fs = require('fs').promises;
+const path = require('path');
 
 let mainWindow;
 
-app.whenReady().then(() => {
+function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
         webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false,  // Required for IPC communication
-            enableRemoteModule: true, // Needed for some Electron APIs
-            devTools: true  // Ensures DevTools is enabled
-        },
+            nodeIntegration: false, // Security: disable nodeIntegration
+            contextIsolation: true, // Security: enable contextIsolation
+            preload: path.join(__dirname, 'preload.js') // Use preload script
+        }
     });
 
     mainWindow.loadFile("index.html");
-    mainWindow.webContents.openDevTools();
+    
+    // Open DevTools in development
+    if (process.env.NODE_ENV === 'development') {
+        mainWindow.webContents.openDevTools();
+    }
+}
 
+app.whenReady().then(createWindow);
 
-    // Listen for file dialog request from renderer
-    ipcMain.on("open-file-dialog", async (event) => {
-        const result = await dialog.showOpenDialog(mainWindow, {
-            properties: ["openFile"],  // Allow selecting files only
-        });
-
-        if (!result.canceled && result.filePaths.length > 0) {
-            event.sender.send("selected-file", result.filePaths[0]);  // Send file path to renderer
-        }
+// Listen for file dialog request from renderer
+ipcMain.on("open-file-dialog", async (event) => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ["openFile"],  // Allow selecting files only
     });
+
+    if (!result.canceled && result.filePaths.length > 0) {
+        event.sender.send("selected-file", result.filePaths[0]);  // Send file path to renderer
+    }
+});
+
+// Add these IPC handlers inside the app.whenReady() callback
+ipcMain.handle('create-file', async (event, { path: filePath, content }) => {
+    try {
+        // Ensure directory exists
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        // Write file
+        await fs.writeFile(filePath, content);
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating file:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('update-file', async (event, { path: filePath, content }) => {
+    try {
+        // Update existing file
+        await fs.writeFile(filePath, content);
+        return { success: true };
+    } catch (error) {
+        console.error('Error updating file:', error);
+        throw error;
+    }
+});
+
+// Add these handlers inside app.whenReady()
+ipcMain.handle('read-file', async (_, filePath) => {
+    try {
+        return await fs.readFile(filePath, 'utf8');
+    } catch (error) {
+        console.error('Error reading file:', error);
+        throw error;
+    }
+});
+
+ipcMain.handle('save-file', async (_, { path, content }) => {
+    await fs.writeFile(path, content);
+    return { success: true };
+});
+
+ipcMain.handle('get-workspace-files', async () => {
+    const workspacePath = process.cwd(); // Or your project root
+    const files = [];
+    
+    async function scanDirectory(dirPath) {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        for (const entry of entries) {
+            const fullPath = path.join(dirPath, entry.name);
+            if (entry.isDirectory()) {
+                files.push({ 
+                    name: entry.name,
+                    path: fullPath,
+                    isDirectory: true
+                });
+                await scanDirectory(fullPath);
+            } else {
+                files.push({
+                    name: entry.name,
+                    path: fullPath,
+                    isDirectory: false
+                });
+            }
+        }
+    }
+    
+    await scanDirectory(workspacePath);
+    return files;
+});
+
+ipcMain.handle('rename-file', async (_, { oldPath, newPath }) => {
+    await fs.rename(oldPath, newPath);
+    return { success: true };
+});
+
+ipcMain.handle('delete-file', async (_, filePath) => {
+    await fs.unlink(filePath);
+    return { success: true };
+});
+
+// Add these dialog handlers
+ipcMain.handle('open-file-dialog', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+            { name: 'All Files', extensions: ['*'] }
+        ]
+    });
+    
+    if (!result.canceled && result.filePaths.length > 0) {
+        return { filePath: result.filePaths[0] };
+    }
+    return { filePath: null };
+});
+
+ipcMain.handle('save-file-dialog', async () => {
+    const result = await dialog.showSaveDialog(mainWindow, {
+        filters: [
+            { name: 'All Files', extensions: ['*'] }
+        ]
+    });
+    
+    if (!result.canceled) {
+        return { filePath: result.filePath };
+    }
+    return { filePath: null };
 });
 
 // Close app when all windows are closed
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit();
+    }
+});
+
+// File system operations
+ipcMain.handle('get-directory-contents', async (_, dirPath) => {
+    try {
+        const entries = await fs.readdir(dirPath, { withFileTypes: true });
+        return Promise.all(entries.map(async entry => {
+            const fullPath = path.join(dirPath, entry.name);
+            return {
+                name: entry.name,
+                path: fullPath,
+                isDirectory: entry.isDirectory()
+            };
+        }));
+    } catch (error) {
+        console.error('Error reading directory:', error);
+        throw error;
     }
 });
