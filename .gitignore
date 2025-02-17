@@ -6,3 +6,10 @@ __pycache__/
 .env
 .venv
 venv
+
+# Ignore specific files and directories
+backend/app.py
+backend/myproject/
+backend/test1.txt
+package-lock.json
+package.json
