@@ -157,4 +157,4 @@ class TabManager {
 // Initialize tab manager when document is ready
 document.addEventListener('DOMContentLoaded', () => {
     window.tabManager = new TabManager();
-}); 
+});

@@ -413,4 +413,4 @@ class FileExplorer {
 }
 
 // Export the class for use in other files
-window.FileExplorer = FileExplorer; 
+window.FileExplorer = FileExplorer;
